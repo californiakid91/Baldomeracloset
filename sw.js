@@ -1,5 +1,5 @@
 // Guarda la app para que funcione sin conexión. Sube VERSION al publicar cambios.
-const VERSION = "baldomera-v2";
+const VERSION = "baldomera-v3";
 const SHELL = ["./", "index.html", "manifest.json", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {

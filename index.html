@@ -192,6 +192,26 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .fl{width:46px;height:46px;margin-bottom:6px}
 .allgood svg.fl{width:34px;height:34px;margin:0;flex:none}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
+.seg button{border:0;background:transparent;border-radius:10px;padding:10px 0;font-weight:700;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.rank{display:flex;flex-direction:column;gap:8px}
+.rk{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.rk-top{display:flex;align-items:baseline;gap:10px}
+.rk-top b{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-top strong{font-size:18px;white-space:nowrap}
+.rk-top strong small{font-size:12px;color:var(--muted);font-weight:600}
+.rk-bar{height:8px;border-radius:99px;background:var(--accent-soft);margin:8px 0 6px;overflow:hidden}
+.rk-bar i{display:block;height:100%;border-radius:99px;background:var(--leaf)}
+.rk.slow .rk-bar i{background:var(--petal)}
+.rk-m{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted)}
+.rk-m span b{color:var(--ink);font-weight:700}
+.tag{font:700 10px/1 var(--body);letter-spacing:.4px;text-transform:uppercase;padding:5px 7px;border-radius:99px;white-space:nowrap}
+.tag.fast{background:var(--good-soft);color:var(--good)}
+.tag.slow{background:var(--warn-soft);color:var(--warn)}
+.tips{background:var(--lav);color:var(--lav-ink);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;font-size:14px}
+.tips p{margin:4px 0}
+.tips b{font-weight:700}
 </style>
 </head>
 <body>
@@ -249,6 +269,19 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
     <div class="rows" id="tRows"></div>
   </section>
 
+  <!-- ESTADÍSTICAS -->
+  <section class="view" id="view-stats" hidden>
+    <h2>¿Qué se vende antes?</h2>
+    <div class="tips" id="stTips"></div>
+    <div class="seg" role="group" aria-label="Agrupar por">
+      <button data-grupo="marca" aria-pressed="true">Marca</button>
+      <button data-grupo="tipo" aria-pressed="false">Prenda</button>
+      <button data-grupo="color" aria-pressed="false">Color</button>
+    </div>
+    <div class="rank" id="stRank"></div>
+    <p class="note" id="stNote"></p>
+  </section>
+
   <!-- AJUSTES -->
   <section class="view" id="view-ajustes" hidden>
     <h2>Ajustes</h2>
@@ -279,8 +312,8 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
   <button class="fab" id="btnAdd" aria-label="Añadir prenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
   <button class="tab" data-view="cuentas">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Cuentas</button>
-  <button class="tab" data-view="ajustes">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Copias</button>
+  <button class="tab" data-view="stats">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.2 6.4.5-4.9 4.2 1.5 6.4L12 16l-5.6 3.3 1.5-6.4L3 8.7l6.4-.5z"/></svg>Estadísticas</button>
 </nav>
 
 <!-- Formulario -->
@@ -303,6 +336,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
     </div>
     <div class="field"><span class="lbl">Tipo de prenda</span><div class="chips" id="tipoChips"></div></div>
     <div class="field"><span class="lbl">Color</span><div class="chips" id="colorChips"></div></div>
+    <div class="field"><label for="iMarca">Marca</label><input id="iMarca" list="marcasList" placeholder="Adidas, Zara, sin marca…" autocomplete="off" autocapitalize="words"><datalist id="marcasList"></datalist></div>
     <div class="two">
       <div class="field"><label for="iCoste">Me costó</label><div class="euro"><input id="iCoste" inputmode="decimal" placeholder="1"></div></div>
       <div class="field"><label for="iPrecio">Precio del anuncio</label><div class="euro"><input id="iPrecio" inputmode="decimal" placeholder="8"></div></div>
@@ -378,7 +412,10 @@ function fotoUrl(it){
 }
 
 /* ---------- Lógica ---------- */
-const nombre=it=>(it.tipo||"Prenda")+(it.color?" · "+it.color:"");
+const nombre=it=>(it.tipo||"Prenda")+(it.marca?" "+it.marca:"")+(it.color?" · "+it.color:"");
+const MARCAS=["Adidas","Nike","Puma","Zara","Mango","Bershka","Pull&Bear","Stradivarius","Massimo Dutti","H&M","Primark","Shein","Levi's","Tommy Hilfiger","Ralph Lauren","Lacoste","Desigual","Springfield","Cortefiel","El Corte Inglés","Sfera","Lefties","Oysho","Vans","Converse","The North Face","Calvin Klein","Guess","Benetton","Sin marca"];
+const marcaKey=m=>(m||"").trim().toLowerCase();
+function fillMarcas(){const seen=new Map();items.forEach(i=>{if(i.marca)seen.set(marcaKey(i.marca),i.marca)});MARCAS.forEach(m=>{if(!seen.has(marcaKey(m)))seen.set(marcaKey(m),m)});$("#marcasList").innerHTML=[...seen.values()].map(m=>`<option value="${esc(m)}">`).join("")}
 const ultimaRen=it=>it.ultimaRenovacion||it.fechaPublicacion||it.creado;
 const proxima=it=>addDays(ultimaRen(it),ajustes.intervalo);
 function estadoRen(it){
@@ -419,7 +456,7 @@ function render(){
     $("#dueList").innerHTML=due.length?due.map(i=>itemHTML(i,true)).join(""):`<div class="allgood"><svg class="fl" aria-hidden="true"><use href="#flor"/></svg>Todo al día. Hoy no toca renovar nada.</div>`;
     $("#soonList").innerHTML=soon.length?soon.slice(0,30).map(i=>itemHTML(i,false)).join(""):`<div class="empty">No hay más prendas en venta.</div>`;
   }
-  renderArmario();renderCuentas();
+  renderArmario();renderCuentas();renderStats();
 }
 let filtro={estado:"venta",tipo:"",color:"",q:""};
 function fillSelects(){
@@ -469,6 +506,61 @@ function renderCuentas(){
   ].map(r=>`<div class="row"><span>${r[0]}</span><b class="num">${r[1]}</b></div>`).join("");
 }
 
+/* ---------- Estadísticas ---------- */
+let grupo="marca";
+const grupoDe=(it,g)=>g==="marca"?(it.marca||"Sin marca indicada"):g==="tipo"?(it.tipo||"Otro"):(it.color||"Sin color");
+const plural=(n,a,b)=>n+" "+(n===1?a:b);
+function statsGrupo(g){
+  const m=new Map();
+  for(const it of items){
+    const k=g==="marca"?marcaKey(it.marca)||"~":grupoDe(it,g);
+    if(!m.has(k))m.set(k,{nombre:grupoDe(it,g),vend:[],venta:[]});
+    (it.vendida?m.get(k).vend:m.get(k).venta).push(it);
+  }
+  return [...m.values()].map(x=>{
+    const dias=x.vend.map(i=>diasPublicada(i)||0);
+    const esperando=x.venta.map(i=>diasPublicada(i)||0);
+    return Object.assign(x,{
+      n:x.vend.length,
+      dias:dias.length?Math.round(dias.reduce((a,b)=>a+b,0)/dias.length):null,
+      benef:x.vend.length?x.vend.reduce((a,i)=>a+(i.precioVenta||0)-(i.coste||0),0)/x.vend.length:null,
+      esperando:esperando.length?Math.round(esperando.reduce((a,b)=>a+b,0)/esperando.length):null,
+      pct:Math.round(x.vend.length/(x.vend.length+x.venta.length)*100)
+    });
+  });
+}
+function renderStats(){
+  const l=statsGrupo(grupo);
+  const vend=l.filter(x=>x.n).sort((a,b)=>a.dias-b.dias||b.n-a.n);
+  const sin=l.filter(x=>!x.n).sort((a,b)=>b.esperando-a.esperando);
+  const max=Math.max(1,...vend.map(x=>x.dias),...sin.map(x=>x.esperando||0));
+  const media=vend.length?vend.reduce((a,x)=>a+x.dias*x.n,0)/vend.reduce((a,x)=>a+x.n,0):null;
+  const qn={marca:"marca",tipo:"tipo de prenda",color:"color"}[grupo];
+  if(!items.some(i=>i.vendida)){
+    $("#stTips").innerHTML=`<p><b>Aún no hay ventas.</b> Cuando vendas prendas, aquí verás qué ${qn} se vende más rápido y cuál deja más beneficio.</p>`;
+  }else{
+    const rap=vend[0],gan=vend.slice().sort((a,b)=>b.benef-a.benef)[0],lenta=vend.length>1?vend[vend.length-1]:null;
+    $("#stTips").innerHTML=`<p>Lo que más rápido se vende: <b>${esc(rap.nombre)}</b>, en ${plural(rap.dias,"día","días")} de media.</p>
+      <p>Lo que más beneficio deja: <b>${esc(gan.nombre)}</b>, ${eur(gan.benef)} por prenda.</p>
+      ${lenta&&lenta!==rap?`<p>Lo que más tarda: <b>${esc(lenta.nombre)}</b>, ${plural(lenta.dias,"día","días")}.</p>`:""}`;
+  }
+  const row=(x,sold)=>{
+    const d=sold?x.dias:x.esperando;
+    let tag="";
+    if(sold&&media!=null&&vend.length>1){if(x.dias<=media*0.6)tag='<span class="tag fast">Rápida</span>';else if(x.dias>=media*1.5)tag='<span class="tag slow">Lenta</span>'}
+    if(!sold&&d>=30)tag='<span class="tag slow">Parada</span>';
+    return `<div class="rk${(!sold||tag.includes("slow"))?" slow":""}">
+      <div class="rk-top"><b>${esc(x.nombre)}</b>${tag}<strong class="num">${d==null?"—":d}<small> ${d===1?"día":"días"}</small></strong></div>
+      <div class="rk-bar"><i style="width:${Math.max(3,(d||0)/max*100)}%"></i></div>
+      <div class="rk-m">${sold?`<span><b class="num">${x.n}</b> ${x.n===1?"vendida":"vendidas"}</span><span>beneficio medio <b class="num">${eur(x.benef)}</b></span>`:`<span>sin ventas todavía</span>`}
+        ${x.venta.length?`<span><b class="num">${x.venta.length}</b> en venta${sold&&x.esperando!=null?" · llevan "+plural(x.esperando,"día","días"):""}</span>`:""}</div></div>`;
+  };
+  $("#stRank").innerHTML=!items.length?`<div class="empty"><svg class="fl" aria-hidden="true"><use href="#flor"/></svg><strong>Sin datos todavía</strong>Añade prendas con su marca y márcalas como vendidas para ver las estadísticas.</div>`
+    :vend.map(x=>row(x,true)).join("")+(sin.length?`<p class="eyebrow">Sin ventas todavía · días que llevan publicadas</p>`+sin.map(x=>row(x,false)).join(""):"");
+  $("#stNote").textContent=items.some(i=>i.vendida)?"Ordenado de lo que se vende antes a lo que tarda más. Con pocas ventas los datos orientan, pero aún no son definitivos.":"";
+}
+document.querySelectorAll("[data-grupo]").forEach(b=>b.addEventListener("click",()=>{grupo=b.dataset.grupo;document.querySelectorAll("[data-grupo]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderStats()}));
+
 /* ---------- Navegación ---------- */
 let vista="hoy";
 function show(v){
@@ -499,7 +591,7 @@ function openForm(it){
   $("#iCompra").value=it?it.fechaCompra||"":today();
   $("#iPub").value=it?it.fechaPublicacion||"":today();
   $("#iRen").value=it?it.ultimaRenovacion||"":today();
-  $("#iNotas").value=it?it.notas||"":"";
+  $("#iNotas").value=it?it.notas||"":"";$("#iMarca").value=it?it.marca||"":"";fillMarcas();
   paintChips();paintFoto();
   $("#detailSheet").hidden=true;$("#formSheet").hidden=false;$("#formSheet .panel").scrollTop=0;
 }
@@ -512,6 +604,7 @@ $("#fotoInput").addEventListener("change",async e=>{
   const f=e.target.files[0];e.target.value="";if(!f)return;
   try{fotoBlob=await shrink(f);paintFoto()}catch(err){toast("No se pudo leer la foto. Prueba con otra.")}
 });
+function normMarca(v){v=(v||"").trim().replace(/\s+/g," ");if(!v)return "";const k=marcaKey(v);const prev=items.find(i=>marcaKey(i.marca)===k)||{};return prev.marca||MARCAS.find(m=>marcaKey(m)===k)||v.charAt(0).toUpperCase()+v.slice(1)}
 async function shrink(file){
   const url=URL.createObjectURL(file);
   try{
@@ -529,7 +622,7 @@ $("#form").addEventListener("submit",async e=>{
   if(coste==null){toast("Pon lo que te costó (aunque sea 1 €)");$("#iCoste").focus();return}
   const nuevo=!edit;
   const it=Object.assign({},edit||{id:(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),creado:today(),vendida:false},{
-    tipo:tipoSel,color:colorSel,coste,precioAnuncio:toNum($("#iPrecio").value),
+    tipo:tipoSel,color:colorSel,marca:normMarca($("#iMarca").value),coste,precioAnuncio:toNum($("#iPrecio").value),
     fechaCompra:$("#iCompra").value||null,fechaPublicacion:$("#iPub").value||today(),
     ultimaRenovacion:$("#iRen").value||$("#iPub").value||today(),notas:$("#iNotas").value.trim(),foto:fotoBlob
   });
@@ -548,7 +641,7 @@ function openDetail(id,opt){
     it.vendida?["Vendida por",eur(it.precioVenta)]:["Precio del anuncio",it.precioAnuncio!=null?eur(it.precioAnuncio):"—"],
     it.vendida?["Beneficio",eur((it.precioVenta||0)-(it.coste||0))]:["Próxima renovación",fmtDate(proxima(it))],
     [it.vendida?"Tardó en venderse":"Lleva publicada",dp!=null?dp+(dp===1?" día":" días"):"—"],
-    ["Comprada",fmtDate(it.fechaCompra)],
+    ["Marca",it.marca?esc(it.marca):"—"],["Comprada",fmtDate(it.fechaCompra)],
     it.vendida?["Fecha de venta",fmtDate(it.fechaVenta)]:["Última renovación",fmtDate(ultimaRen(it))]
   ];
   $("#detail").innerHTML=`
