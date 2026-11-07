@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Baldomera Closet</title>
+<meta name="description" content="Control de prendas, renovaciones y beneficios de Vinted.">
+<meta name="theme-color" content="#F7D6E3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Baldomera">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@500;600;700&display=swap">
+<style>
+/* Layout: una sola columna tipo app, cabecera ciruela, barra de pestañas fija abajo, fichas de prenda como etiquetas */
+:root{
+  --bg:#FFF6F8; --surface:#FFFFFF; --ink:#4E3B52; --muted:#9C8AA0; --line:#F3DEE7;
+  --plum:#F7D6E3; --plum-ink:#7A3F60; --lav:#EBDDF7; --lav-ink:#5E4280;
+  --accent:#DB6E9B; --accent-soft:#FCE6EE; --petal:#F9C6D8; --leaf:#A8D8C0; --sun:#FFD98A;
+  --good:#3F8F6E; --good-soft:#DDF3E8; --warn:#B66A2E; --warn-soft:#FFEBD9; --bad:#C2475F; --bad-soft:#FFE0E5;
+  --display:"Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --script:"Dancing Script","Snell Roundhand","Brush Script MT",cursive;
+  --body:"Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --r:18px; --on-accent:#FFFFFF;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#1E1820; --surface:#2A222D; --ink:#F6EAF1; --muted:#B9A7BD; --line:#3E3342;
+  --plum:#4A2C3D; --plum-ink:#FFD9E8; --lav:#3A2F4C; --lav-ink:#E3D3FA;
+  --accent:#F08BB4; --accent-soft:#45283A; --petal:#7A4560; --leaf:#4E8A70; --sun:#C9A04A;
+  --on-accent:#3A1A2A; --good:#7FD6AE; --good-soft:#1F382D; --warn:#F2B27A; --warn-soft:#3E2C1C; --bad:#F48FA2; --bad-soft:#44222B;
+  color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+header.top{position:sticky;top:0;z-index:20;background:var(--plum);color:var(--plum-ink);
+  padding:calc(env(safe-area-inset-top,0px) + 10px) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));
+  display:flex;align-items:center;gap:12px}
+header.top h1{font:700 32px/1 var(--script);margin:0;flex:1;position:relative;z-index:1}
+header.top h1 small{display:block;font:700 11px/1.4 var(--body);letter-spacing:1.4px;text-transform:uppercase;opacity:.75;margin-top:6px}
+header.top{overflow:hidden;border-radius:0 0 26px 26px}
+.flores{position:absolute;right:58px;top:0;bottom:0;width:150px;pointer-events:none}
+.flor-p{fill:var(--petal)}.flor-c{fill:var(--sun)}.flor-l{fill:var(--leaf)}
+header .flor-p{fill:#fff;opacity:.8}
+@media (prefers-color-scheme:dark){header .flor-p{fill:var(--petal);opacity:1}}
+.iconbtn{position:relative;z-index:1}
+.iconbtn{background:transparent;border:0;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:inherit}
+.iconbtn:active{background:rgba(255,255,255,.12)}
+.iconbtn svg{width:24px;height:24px}
+
+main{padding:16px max(16px,env(safe-area-inset-right,0px)) calc(110px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));max-width:720px;margin:0 auto}
+.view[hidden]{display:none!important}
+h2{font:700 21px/1.2 var(--display);margin:6px 0 12px}
+.eyebrow{font:700 11px/1.3 var(--body);letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+
+/* Resumen */
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 12px 10px;min-width:0}
+.stat b{display:block;font:700 22px/1.1 var(--display)}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* Fichas */
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px;text-align:left;width:100%}
+.item:active{transform:scale(.99)}
+.thumb{width:64px;height:64px;border-radius:14px;flex:none;object-fit:cover;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);overflow:hidden}
+.thumb svg{width:28px;height:28px}
+.item .info{flex:1;min-width:0}
+.item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .m{font-size:13px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.15);vertical-align:-1px;margin-right:4px}
+.pill{font:700 11px/1 var(--body);letter-spacing:.3px;padding:6px 8px;border-radius:999px;white-space:nowrap}
+.pill.due{background:var(--bad-soft);color:var(--bad)}
+.pill.soon{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+.pill.sold{background:var(--lav);color:var(--lav-ink)}
+.renew{flex:none;border:0;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px;padding:10px 12px;border-radius:12px}
+.renew:active{opacity:.85}
+
+.empty{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;padding:28px 16px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
+.empty strong{display:block;color:var(--ink);font:700 19px/1.3 var(--display);margin-bottom:6px}
+.allgood{display:flex;gap:12px;align-items:center;background:var(--good-soft);color:var(--good);border-radius:var(--r);padding:14px;font-weight:600}
+
+/* Filtros */
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 10px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;white-space:nowrap;flex:none}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:16px}
+.selects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+select.f{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;font-size:15px}
+
+/* Cuentas */
+.monthnav{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px}
+.monthnav b{font:700 19px var(--display)}
+.monthnav .iconbtn{color:var(--ink)}
+.big{background:var(--lav);color:var(--lav-ink);position:relative;overflow:hidden;border-radius:var(--r);padding:18px;margin:10px 0}
+.big .flor-big{position:absolute;right:-18px;bottom:-22px;width:120px;height:120px;opacity:.9}
+.big span{position:relative;font-size:13px;opacity:.75}
+.big b{position:relative;display:block;font:700 40px/1.1 var(--display);margin:4px 0 2px}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row span{color:var(--muted)}
+.row b{font-weight:600}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 10px 10px}
+.bars{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:130px;border-bottom:1px solid var(--line);position:relative}
+.bar{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bar i{display:block;width:70%;border-radius:10px 10px 0 0;background:var(--petal);min-height:2px}
+.bar i.neg{background:var(--bad)}
+.bar em{font-style:normal;font-size:11px;color:var(--muted);margin-bottom:4px;white-space:nowrap}
+.bar.cur i{background:var(--lav-ink)}
+.blabels{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center;font-size:12px;color:var(--muted);margin-top:6px;text-transform:capitalize}
+
+/* Barra inferior */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 1fr 72px 1fr 1fr;align-items:center;
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tab{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--muted);padding:6px 0;position:relative}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--accent)}
+.tab .badge{position:absolute;top:0;left:calc(50% + 6px);background:var(--accent);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
+.fab{justify-self:center;width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 6px 18px rgba(219,110,155,.35);margin-top:-22px}
+.fab svg{width:28px;height:28px}
+
+/* Hoja (formulario / detalle) */
+.sheet{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(20,10,24,.45)}
+.sheet[hidden]{display:none}
+.panel{background:var(--bg);border-radius:20px 20px 0 0;max-height:94%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:0 max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));width:100%;max-width:720px;margin:0 auto}
+.panel-head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:8px;padding:14px 0 10px;z-index:2}
+.panel-head h3{flex:1;margin:0;font:700 21px var(--display)}
+.panel-head .iconbtn{color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
+.field label,.lbl{font-size:13px;font-weight:700;color:var(--muted)}
+.field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:16px;min-width:0}
+.field input[type=date]{min-height:48px;-webkit-appearance:none;appearance:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.euro{position:relative}
+.euro input{padding-right:34px}
+.euro::after{content:"€";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.photo{display:flex;gap:12px;align-items:center}
+.photo .prev{width:96px;height:96px;border-radius:14px;object-fit:cover;background:var(--accent-soft);display:grid;place-items:center;color:var(--accent);flex:none;overflow:hidden}
+.photo .prev img{width:100%;height:100%;object-fit:cover}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.dark{background:var(--lav);border-color:var(--lav);color:var(--lav-ink)}
+.btn.danger{color:var(--bad);border-color:var(--bad-soft);background:var(--bad-soft)}
+.btn.block{width:100%;padding:15px}
+.btn:active{opacity:.85}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips .chip{padding:8px 12px}
+.actions{display:grid;gap:10px;margin-top:6px}
+.detail-photo{width:100%;max-height:340px;object-fit:cover;border-radius:16px;margin-bottom:12px;background:var(--accent-soft)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 16px}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.kv span{display:block;font-size:12px;color:var(--muted)}
+.kv b{font-weight:600}
+.confirm{background:var(--bad-soft);border-radius:14px;padding:14px;margin-top:10px}
+.confirm p{margin:0 0 10px;color:var(--bad);font-weight:600}
+.confirm .two .btn{width:100%}
+.sellbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:6px}
+
+/* Ajustes */
+.setting{display:flex;gap:12px;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.setting p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.switch{position:relative;width:52px;height:32px;flex:none}
+.switch input{opacity:0;width:100%;height:100%;margin:0;position:absolute;z-index:1}
+.switch span{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.2s}
+.switch span::after{content:"";position:absolute;width:26px;height:26px;left:3px;top:3px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.2s}
+.switch input:checked+span{background:var(--good)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:20px;font-weight:700}
+.stepper b{min-width:28px;text-align:center;font-size:18px}
+.note{font-size:13px;color:var(--muted);margin:6px 2px 14px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;z-index:80;max-width:calc(100% - 32px);text-align:center}
+.install{background:var(--accent-soft);border-radius:var(--r);padding:14px;margin-bottom:14px;font-size:14px}
+.install b{display:block;margin-bottom:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.fl{width:46px;height:46px;margin-bottom:6px}
+.allgood svg.fl{width:34px;height:34px;margin:0;flex:none}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="flor" viewBox="0 0 40 40"><g class="flor-p"><circle cx="20" cy="9" r="8"/><circle cx="30.5" cy="16.6" r="8"/><circle cx="26.5" cy="29" r="8"/><circle cx="13.5" cy="29" r="8"/><circle cx="9.5" cy="16.6" r="8"/></g><circle class="flor-c" cx="20" cy="20" r="6"/></symbol><symbol id="hoja" viewBox="0 0 20 20"><path class="flor-l" d="M2 18C2 8 8 2 18 2 18 12 12 18 2 18z"/></symbol></defs></svg>
+<header class="top">
+  <svg class="flores" viewBox="0 0 150 90" aria-hidden="true"><use href="#hoja" x="78" y="44" width="22" height="22"/><use href="#flor" x="88" y="8" width="44" height="44"/><use href="#flor" x="52" y="50" width="28" height="28"/><use href="#flor" x="124" y="56" width="22" height="22"/><use href="#hoja" x="30" y="10" width="14" height="14"/></svg>
+  <h1>Baldomera Closet<small id="subtitle">Tu armario de Vinted</small></h1>
+  <button class="iconbtn" id="btnSettings" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</header>
+
+<main>
+  <!-- HOY -->
+  <section class="view" id="view-hoy">
+    <div class="install" id="installTip" hidden><b>Instálala en tu iPhone</b>En Safari, toca Compartir y luego «Añadir a pantalla de inicio». Así se abre como una app y tus datos quedan guardados.</div>
+    <div class="summary">
+      <div class="stat"><b class="num" id="sEnVenta">0</b><span>en venta</span></div>
+      <div class="stat"><b class="num" id="sVendidasMes">0</b><span>vendidas este mes</span></div>
+      <div class="stat"><b class="num" id="sBenefMes">0 €</b><span>beneficio del mes</span></div>
+    </div>
+    <p class="eyebrow">Toca renovar hoy</p>
+    <div class="list" id="dueList"></div>
+    <p class="eyebrow">Próximas renovaciones</p>
+    <div class="list" id="soonList"></div>
+  </section>
+
+  <!-- ARMARIO -->
+  <section class="view" id="view-armario" hidden>
+    <input class="search" id="q" type="search" placeholder="Buscar por tipo, color o nota" autocomplete="off">
+    <div class="filters" role="group" aria-label="Estado">
+      <button class="chip" data-estado="venta" aria-pressed="true">En venta</button>
+      <button class="chip" data-estado="vendida" aria-pressed="false">Vendidas</button>
+      <button class="chip" data-estado="todas" aria-pressed="false">Todas</button>
+    </div>
+    <div class="selects">
+      <select class="f" id="fTipo" aria-label="Tipo de prenda"></select>
+      <select class="f" id="fColor" aria-label="Color"></select>
+    </div>
+    <div class="list" id="allList"></div>
+  </section>
+
+  <!-- CUENTAS -->
+  <section class="view" id="view-cuentas" hidden>
+    <div class="monthnav">
+      <button class="iconbtn" id="mPrev" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <b id="mLabel">mes</b>
+      <button class="iconbtn" id="mNext" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <div class="big"><svg class="flor-big" aria-hidden="true"><use href="#flor"/></svg><span>Beneficio del mes</span><b class="num" id="cBenef">0 €</b><span id="cBenefSub"></span></div>
+    <div class="rows" id="cRows"></div>
+    <p class="eyebrow">Beneficio de los últimos 6 meses</p>
+    <div class="chart"><div class="bars" id="bars"></div><div class="blabels" id="blabels"></div></div>
+    <p class="eyebrow">Desde el principio</p>
+    <div class="rows" id="tRows"></div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="view" id="view-ajustes" hidden>
+    <h2>Ajustes</h2>
+    <div class="setting">
+      <div><b>Renovar cada</b><p>Días entre cada renovación del anuncio</p></div>
+      <div class="stepper"><button id="intMinus" aria-label="Menos días">−</button><b class="num" id="intVal">3</b><button id="intPlus" aria-label="Más días">+</button></div>
+    </div>
+    <div class="setting">
+      <div><b>Recordatorios en el Calendario</b><p>Al guardar una prenda, ofrece añadir un aviso al Calendario del iPhone que se repite cada pocos días.</p></div>
+      <label class="switch"><input type="checkbox" id="calOn" aria-label="Recordatorios en el Calendario"><span></span></label>
+    </div>
+    <p class="note">Cuando vendas una prenda, borra su aviso desde la app Calendario (toca el evento, «Eliminar evento» y «Eliminar todos los eventos futuros»).</p>
+    <p class="eyebrow">Copia de seguridad</p>
+    <p class="note">Todo se guarda solo en este iPhone. Haz una copia de vez en cuando y guárdala en Archivos o iCloud Drive.</p>
+    <div class="actions">
+      <button class="btn dark block" id="btnExport">Guardar copia de seguridad</button>
+      <button class="btn block" id="btnImport">Recuperar desde una copia</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Secciones">
+  <button class="tab" data-view="hoy" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>Renovar<span class="badge" id="dueBadge" hidden>0</span></button>
+  <button class="tab" data-view="armario">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 1 2-2"/><path d="M12 6v1.5L3 15a1.5 1.5 0 0 0 1 2.6h16a1.5 1.5 0 0 0 1-2.6l-9-7.5"/></svg>Armario</button>
+  <button class="fab" id="btnAdd" aria-label="Añadir prenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="tab" data-view="cuentas">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Cuentas</button>
+  <button class="tab" data-view="ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Copias</button>
+</nav>
+
+<!-- Formulario -->
+<div class="sheet" id="formSheet" hidden>
+  <form class="panel" id="form" novalidate>
+    <div class="panel-head">
+      <h3 id="formTitle">Nueva prenda</h3>
+      <button type="button" class="iconbtn" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="field">
+      <span class="lbl">Foto</span>
+      <div class="photo">
+        <div class="prev" id="fotoPrev"></div>
+        <div style="display:grid;gap:8px">
+          <button type="button" class="btn" id="btnFoto">Hacer o elegir foto</button>
+          <button type="button" class="btn" id="btnFotoQuitar" hidden>Quitar foto</button>
+        </div>
+        <input type="file" id="fotoInput" accept="image/*" hidden>
+      </div>
+    </div>
+    <div class="field"><span class="lbl">Tipo de prenda</span><div class="chips" id="tipoChips"></div></div>
+    <div class="field"><span class="lbl">Color</span><div class="chips" id="colorChips"></div></div>
+    <div class="two">
+      <div class="field"><label for="iCoste">Me costó</label><div class="euro"><input id="iCoste" inputmode="decimal" placeholder="1"></div></div>
+      <div class="field"><label for="iPrecio">Precio del anuncio</label><div class="euro"><input id="iPrecio" inputmode="decimal" placeholder="8"></div></div>
+    </div>
+    <div class="two">
+      <div class="field"><label for="iCompra">Comprada el</label><input id="iCompra" type="date"></div>
+      <div class="field"><label for="iPub">Publicada el</label><input id="iPub" type="date"></div>
+    </div>
+    <div class="field"><label for="iRen">Última renovación</label><input id="iRen" type="date"></div>
+    <div class="field"><label for="iNotas">Notas (opcional)</label><textarea id="iNotas" rows="2" placeholder="Mercadillo de los domingos, talla M…"></textarea></div>
+    <button class="btn primary block" type="submit" id="btnGuardar">Guardar prenda</button>
+  </form>
+</div>
+
+<!-- Detalle -->
+<div class="sheet" id="detailSheet" hidden>
+  <div class="panel" id="detail"></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* ---------- Datos fijos ---------- */
+const TIPOS=["Camiseta","Camisa","Blusa","Top","Jersey","Sudadera","Chaqueta","Abrigo","Vestido","Falda","Pantalón","Vaqueros","Shorts","Mono","Calzado","Bolso","Accesorio","Otro"];
+const COLORES=[["Negro","#111"],["Blanco","#fff"],["Gris","#9a9a9a"],["Beige","#d8c3a5"],["Marrón","#7a4b2a"],["Rojo","#d32f2f"],["Rosa","#f48fb1"],["Naranja","#f57c00"],["Amarillo","#fbc02d"],["Verde","#388e3c"],["Azul","#1e63c6"],["Vaquero","#4a6d93"],["Morado","#7b1fa2"],["Estampado","linear-gradient(135deg,#f48fb1 0 33%,#fbc02d 33% 66%,#1e63c6 66%)"],["Multicolor","conic-gradient(#d32f2f,#fbc02d,#388e3c,#1e63c6,#7b1fa2,#d32f2f)"]];
+const colorCss=n=>(COLORES.find(c=>c[0]===n)||[0,"#ccc"])[1];
+const HANGER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 1 2-2"/><path d="M12 6v1.5L3 15a1.5 1.5 0 0 0 1 2.6h16a1.5 1.5 0 0 0 1-2.6l-9-7.5"/></svg>';
+
+/* ---------- Fechas ---------- */
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>ymd(new Date());
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const fmtDate=s=>s?parse(s).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"}):"—";
+const eur=n=>(Math.round((n||0)*100)/100).toLocaleString("es-ES",{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2})+" €";
+const toNum=v=>{if(v==null)return null;v=String(v).trim().replace(",",".");if(v==="")return null;const n=Number(v);return isFinite(n)?n:null};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------- Almacenamiento (IndexedDB) ---------- */
+let dbp=null;
+function openDB(){
+  if(dbp)return dbp;
+  dbp=new Promise((res,rej)=>{
+    const r=indexedDB.open("baldomera",1);
+    r.onupgradeneeded=()=>{r.result.createObjectStore("items",{keyPath:"id"})};
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+  });
+  return dbp;
+}
+async function tx(mode,fn){const db=await openDB();return new Promise((res,rej)=>{const t=db.transaction("items",mode);const s=t.objectStore("items");const out=fn(s);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error)})}
+const dbAll=()=>tx("readonly",s=>s.getAll());
+const dbPut=it=>tx("readwrite",s=>{s.put(it)});
+const dbDel=id=>tx("readwrite",s=>{s.delete(id)});
+const dbClear=()=>tx("readwrite",s=>{s.clear()});
+
+const SKEY="baldomera-ajustes";
+let ajustes={intervalo:3,calendario:false};
+try{Object.assign(ajustes,JSON.parse(localStorage.getItem(SKEY)||"{}"))}catch(e){}
+const saveAjustes=()=>{try{localStorage.setItem(SKEY,JSON.stringify(ajustes))}catch(e){}};
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(()=>{})}
+
+let items=[];
+const urls=new Map();
+function fotoUrl(it){
+  if(!it.foto)return null;
+  const c=urls.get(it.id);
+  if(c&&c.blob===it.foto)return c.url;
+  if(c)URL.revokeObjectURL(c.url);
+  const url=URL.createObjectURL(it.foto);urls.set(it.id,{blob:it.foto,url});return url;
+}
+
+/* ---------- Lógica ---------- */
+const nombre=it=>(it.tipo||"Prenda")+(it.color?" · "+it.color:"");
+const ultimaRen=it=>it.ultimaRenovacion||it.fechaPublicacion||it.creado;
+const proxima=it=>addDays(ultimaRen(it),ajustes.intervalo);
+function estadoRen(it){
+  if(it.vendida)return{cls:"sold",txt:"Vendida",dias:null};
+  const d=daysBetween(today(),proxima(it));
+  if(d<0)return{cls:"due",txt:"Atrasada "+(-d)+(d===-1?" día":" días"),dias:d};
+  if(d===0)return{cls:"due",txt:"Toca hoy",dias:0};
+  if(d===1)return{cls:"soon",txt:"Mañana",dias:1};
+  return{cls:"ok",txt:"En "+d+" días",dias:d};
+}
+const diasPublicada=it=>it.fechaPublicacion?daysBetween(it.fechaPublicacion,it.vendida&&it.fechaVenta?it.fechaVenta:today()):null;
+
+/* ---------- Render ---------- */
+const $=s=>document.querySelector(s);
+function thumbHTML(it){const u=fotoUrl(it);return u?`<img class="thumb" src="${u}" alt="">`:`<div class="thumb">${HANGER}</div>`}
+function itemHTML(it,withRenew){
+  const e=estadoRen(it);const dp=diasPublicada(it);
+  const meta=[];
+  if(it.vendida){meta.push("Vendida por <b class=num>"+eur(it.precioVenta)+"</b>");meta.push("+"+eur((it.precioVenta||0)-(it.coste||0)))}
+  else{if(it.precioAnuncio!=null)meta.push("<span class=num>"+eur(it.precioAnuncio)+"</span>");meta.push("costó <span class=num>"+eur(it.coste)+"</span>")}
+  if(dp!=null)meta.push((it.vendida?"tardó ":"")+dp+(dp===1?" día":" días"));
+  return `<div class="item" data-id="${it.id}" role="button" tabindex="0">${thumbHTML(it)}
+    <div class="info"><div class="t"><span class="dot" style="background:${colorCss(it.color)}"></span>${esc(nombre(it))}</div><div class="m">${meta.map(x=>"<span>"+x+"</span>").join("")}</div></div>
+    ${withRenew&&!it.vendida&&e.dias!=null&&e.dias<=0?`<button class="renew" data-renew="${it.id}">Renovado</button>`:`<span class="pill ${e.cls}">${e.txt}</span>`}</div>`;
+}
+function render(){
+  const venta=items.filter(i=>!i.vendida);
+  const due=venta.filter(i=>estadoRen(i).dias<=0).sort((a,b)=>proxima(a).localeCompare(proxima(b)));
+  const soon=venta.filter(i=>estadoRen(i).dias>0).sort((a,b)=>proxima(a).localeCompare(proxima(b)));
+  const mes=today().slice(0,7);const m=statsMes(mes);
+  $("#sEnVenta").textContent=venta.length;$("#sVendidasMes").textContent=m.n;$("#sBenefMes").textContent=eur(m.benef);
+  const b=$("#dueBadge");b.hidden=!due.length;b.textContent=due.length;
+  $("#subtitle").textContent=due.length?(due.length===1?"1 anuncio por renovar":due.length+" anuncios por renovar"):"Tu armario de Vinted";
+  if(!items.length){
+    $("#dueList").innerHTML=`<div class="empty"><svg class="fl" aria-hidden="true"><use href="#flor"/></svg><strong>Aún no hay prendas</strong>Toca el botón + para añadir la primera: foto, tipo, color y lo que te costó.</div>`;
+    $("#soonList").innerHTML="";
+  }else{
+    $("#dueList").innerHTML=due.length?due.map(i=>itemHTML(i,true)).join(""):`<div class="allgood"><svg class="fl" aria-hidden="true"><use href="#flor"/></svg>Todo al día. Hoy no toca renovar nada.</div>`;
+    $("#soonList").innerHTML=soon.length?soon.slice(0,30).map(i=>itemHTML(i,false)).join(""):`<div class="empty">No hay más prendas en venta.</div>`;
+  }
+  renderArmario();renderCuentas();
+}
+let filtro={estado:"venta",tipo:"",color:"",q:""};
+function fillSelects(){
+  const t=$("#fTipo"),c=$("#fColor");
+  t.innerHTML='<option value="">Todos los tipos</option>'+TIPOS.map(x=>`<option>${x}</option>`).join("");
+  c.innerHTML='<option value="">Todos los colores</option>'+COLORES.map(x=>`<option>${x[0]}</option>`).join("");
+}
+function renderArmario(){
+  let l=items.slice();
+  if(filtro.estado==="venta")l=l.filter(i=>!i.vendida);else if(filtro.estado==="vendida")l=l.filter(i=>i.vendida);
+  if(filtro.tipo)l=l.filter(i=>i.tipo===filtro.tipo);
+  if(filtro.color)l=l.filter(i=>i.color===filtro.color);
+  if(filtro.q){const q=filtro.q.toLowerCase();l=l.filter(i=>(nombre(i)+" "+(i.notas||"")).toLowerCase().includes(q))}
+  l.sort((a,b)=>(b.vendida?b.fechaVenta:b.fechaPublicacion||b.creado).localeCompare(a.vendida?a.fechaVenta:a.fechaPublicacion||a.creado));
+  $("#allList").innerHTML=l.length?l.map(i=>itemHTML(i,false)).join(""):`<div class="empty">${items.length?"Ninguna prenda con estos filtros.":'<svg class="fl" aria-hidden="true"><use href="#flor"/></svg>'+"<strong>Tu armario está vacío</strong>Añade tu primera prenda con el botón +."}</div>`;
+}
+let mesSel=today().slice(0,7);
+function statsMes(m){
+  const v=items.filter(i=>i.vendida&&(i.fechaVenta||"").startsWith(m));
+  const ing=v.reduce((s,i)=>s+(i.precioVenta||0),0),cost=v.reduce((s,i)=>s+(i.coste||0),0);
+  const comp=items.filter(i=>(i.fechaCompra||"").startsWith(m));
+  return{n:v.length,ing,cost,benef:ing-cost,compras:comp.length,gastado:comp.reduce((s,i)=>s+(i.coste||0),0),
+    dias:v.length?Math.round(v.reduce((s,i)=>s+(diasPublicada(i)||0),0)/v.length):null};
+}
+const mesLabel=(m,opt)=>{const t=parse(m+"-01").toLocaleDateString("es-ES",opt||{month:"long",year:"numeric"});return t.charAt(0).toUpperCase()+t.slice(1)};
+const shiftMes=(m,n)=>{const d=parse(m+"-01");d.setMonth(d.getMonth()+n);return ymd(d).slice(0,7)};
+function renderCuentas(){
+  const s=statsMes(mesSel);
+  $("#mLabel").textContent=mesLabel(mesSel);
+  $("#cBenef").textContent=(s.benef>0?"+":"")+eur(s.benef);
+  $("#cBenefSub").textContent=s.n?`${s.n} ${s.n===1?"prenda vendida":"prendas vendidas"}`:"Sin ventas este mes";
+  $("#cRows").innerHTML=[
+    ["Ingresos por ventas",eur(s.ing)],["Lo que costaron esas prendas",eur(s.cost)],
+    ["Prendas compradas este mes",s.compras],["Gastado en compras",eur(s.gastado)],
+    ["Días medios hasta venderse",s.dias==null?"—":s.dias]
+  ].map(r=>`<div class="row"><span>${r[0]}</span><b class="num">${r[1]}</b></div>`).join("");
+  const ms=[...Array(6)].map((_,k)=>shiftMes(mesSel,k-5));
+  const vals=ms.map(m=>statsMes(m).benef);const max=Math.max(1,...vals.map(Math.abs));
+  $("#bars").innerHTML=ms.map((m,k)=>`<div class="bar${m===mesSel?" cur":""}"><em class="num">${Math.round(vals[k])}€</em><i class="${vals[k]<0?"neg":""}" style="height:${Math.abs(vals[k])/max*80}%"></i></div>`).join("");
+  $("#blabels").innerHTML=ms.map(m=>`<span>${mesLabel(m,{month:"short"}).replace(".","")}</span>`).join("");
+  const sold=items.filter(i=>i.vendida),venta=items.filter(i=>!i.vendida);
+  const ingT=sold.reduce((a,i)=>a+(i.precioVenta||0),0),costT=sold.reduce((a,i)=>a+(i.coste||0),0);
+  $("#tRows").innerHTML=[
+    ["Prendas vendidas",sold.length],["Beneficio total",eur(ingT-costT)],
+    ["Prendas en venta",venta.length],["Invertido en lo que está a la venta",eur(venta.reduce((a,i)=>a+(i.coste||0),0))],
+    ["Valor de los anuncios activos",eur(venta.reduce((a,i)=>a+(i.precioAnuncio||0),0))]
+  ].map(r=>`<div class="row"><span>${r[0]}</span><b class="num">${r[1]}</b></div>`).join("");
+}
+
+/* ---------- Navegación ---------- */
+let vista="hoy";
+function show(v){
+  vista=v;document.querySelectorAll(".view").forEach(s=>s.hidden=s.id!=="view-"+v);
+  document.querySelectorAll(".tab").forEach(t=>{if(t.dataset.view===v)t.setAttribute("aria-current","page");else t.removeAttribute("aria-current")});
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>show(t.dataset.view)));
+$("#btnSettings").addEventListener("click",()=>show("ajustes"));
+
+/* ---------- Toast ---------- */
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2400)}
+
+/* ---------- Formulario ---------- */
+let edit=null,fotoBlob=null,tipoSel="",colorSel="";
+function chipsHTML(list,sel,attr){return list.map(x=>{const n=Array.isArray(x)?x[0]:x;const dot=Array.isArray(x)?`<span class="dot" style="background:${x[1]}"></span>`:"";return `<button type="button" class="chip" ${attr}="${n}" aria-pressed="${n===sel}">${dot}${n}</button>`}).join("")}
+function paintChips(){$("#tipoChips").innerHTML=chipsHTML(TIPOS,tipoSel,"data-tipo");$("#colorChips").innerHTML=chipsHTML(COLORES,colorSel,"data-color")}
+function paintFoto(){
+  const p=$("#fotoPrev");
+  if(fotoBlob){const u=URL.createObjectURL(fotoBlob);p.innerHTML=`<img src="${u}" alt="">`;$("#btnFotoQuitar").hidden=false}
+  else{p.innerHTML=HANGER;$("#btnFotoQuitar").hidden=true}
+}
+function openForm(it){
+  edit=it||null;fotoBlob=it?it.foto||null:null;tipoSel=it?it.tipo||"":"";colorSel=it?it.color||"":"";
+  $("#formTitle").textContent=it?"Editar prenda":"Nueva prenda";
+  $("#iCoste").value=it&&it.coste!=null?String(it.coste).replace(".",","):"";
+  $("#iPrecio").value=it&&it.precioAnuncio!=null?String(it.precioAnuncio).replace(".",","):"";
+  $("#iCompra").value=it?it.fechaCompra||"":today();
+  $("#iPub").value=it?it.fechaPublicacion||"":today();
+  $("#iRen").value=it?it.ultimaRenovacion||"":today();
+  $("#iNotas").value=it?it.notas||"":"";
+  paintChips();paintFoto();
+  $("#detailSheet").hidden=true;$("#formSheet").hidden=false;$("#formSheet .panel").scrollTop=0;
+}
+$("#btnAdd").addEventListener("click",()=>openForm(null));
+$("#tipoChips").addEventListener("click",e=>{const b=e.target.closest("[data-tipo]");if(!b)return;tipoSel=tipoSel===b.dataset.tipo?"":b.dataset.tipo;paintChips()});
+$("#colorChips").addEventListener("click",e=>{const b=e.target.closest("[data-color]");if(!b)return;colorSel=colorSel===b.dataset.color?"":b.dataset.color;paintChips()});
+$("#btnFoto").addEventListener("click",()=>$("#fotoInput").click());
+$("#btnFotoQuitar").addEventListener("click",()=>{fotoBlob=null;paintFoto()});
+$("#fotoInput").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{fotoBlob=await shrink(f);paintFoto()}catch(err){toast("No se pudo leer la foto. Prueba con otra.")}
+});
+async function shrink(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const M=900,k=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    return await new Promise(res=>c.toBlob(b=>res(b||file),"image/jpeg",0.78));
+  }finally{URL.revokeObjectURL(url)}
+}
+$("#form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  if(!tipoSel){toast("Elige el tipo de prenda");return}
+  const coste=toNum($("#iCoste").value);
+  if(coste==null){toast("Pon lo que te costó (aunque sea 1 €)");$("#iCoste").focus();return}
+  const nuevo=!edit;
+  const it=Object.assign({},edit||{id:(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),creado:today(),vendida:false},{
+    tipo:tipoSel,color:colorSel,coste,precioAnuncio:toNum($("#iPrecio").value),
+    fechaCompra:$("#iCompra").value||null,fechaPublicacion:$("#iPub").value||today(),
+    ultimaRenovacion:$("#iRen").value||$("#iPub").value||today(),notas:$("#iNotas").value.trim(),foto:fotoBlob
+  });
+  await dbPut(it);await load();
+  $("#formSheet").hidden=true;
+  toast(nuevo?"Prenda guardada":"Cambios guardados");
+  if(nuevo&&ajustes.calendario)openDetail(it.id,{calHint:true});else if(!nuevo)openDetail(it.id);
+});
+
+/* ---------- Detalle ---------- */
+function openDetail(id,opt){
+  const it=items.find(i=>i.id===id);if(!it)return;opt=opt||{};
+  const e=estadoRen(it);const u=fotoUrl(it);const dp=diasPublicada(it);
+  const kv=[
+    ["Me costó",eur(it.coste)],
+    it.vendida?["Vendida por",eur(it.precioVenta)]:["Precio del anuncio",it.precioAnuncio!=null?eur(it.precioAnuncio):"—"],
+    it.vendida?["Beneficio",eur((it.precioVenta||0)-(it.coste||0))]:["Próxima renovación",fmtDate(proxima(it))],
+    [it.vendida?"Tardó en venderse":"Lleva publicada",dp!=null?dp+(dp===1?" día":" días"):"—"],
+    ["Comprada",fmtDate(it.fechaCompra)],
+    it.vendida?["Fecha de venta",fmtDate(it.fechaVenta)]:["Última renovación",fmtDate(ultimaRen(it))]
+  ];
+  $("#detail").innerHTML=`
+    <div class="panel-head"><h3><span class="dot" style="background:${colorCss(it.color)}"></span>${esc(nombre(it))}</h3>
+      <button class="iconbtn" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    ${u?`<img class="detail-photo" src="${u}" alt="">`:""}
+    <span class="pill ${e.cls}">${e.txt}</span>
+    <div class="kv">${kv.map(k=>`<div><span>${k[0]}</span><b class="num">${k[1]}</b></div>`).join("")}</div>
+    ${it.notas?`<p class="note">${esc(it.notas)}</p>`:""}
+    <div class="actions">
+      ${opt.calHint?`<button class="btn dark block" data-act="cal">Añadir aviso al Calendario</button>`:""}
+      ${!it.vendida?`<button class="btn primary block" data-act="renew">Renovado hoy</button>
+        <div class="sellbox" id="sellbox" hidden>
+          <div class="two"><div class="field"><label for="sPrecio">Vendida por</label><div class="euro"><input id="sPrecio" inputmode="decimal" value="${it.precioAnuncio!=null?String(it.precioAnuncio).replace(".",","):""}"></div></div>
+          <div class="field"><label for="sFecha">Fecha</label><input id="sFecha" type="date" value="${today()}"></div></div>
+          <button class="btn dark block" data-act="sellok">Confirmar venta</button></div>
+        <button class="btn block" data-act="sell" id="btnSell">Marcar como vendida</button>
+        ${ajustes.calendario&&!opt.calHint?`<button class="btn block" data-act="cal">Añadir aviso al Calendario</button>`:""}`
+      :`<button class="btn block" data-act="unsell">Volver a poner en venta</button>`}
+      <button class="btn block" data-act="edit">Editar</button>
+      <button class="btn danger block" data-act="del" id="btnDel">Eliminar prenda</button>
+      <div class="confirm" id="confirmDel" hidden><p>¿Eliminar esta prenda para siempre?</p>
+        <div class="two"><button class="btn" data-act="delno">Cancelar</button><button class="btn danger" data-act="delok" style="background:var(--bad);color:#fff">Eliminar</button></div></div>
+    </div>`;
+  $("#detail").dataset.id=id;
+  $("#formSheet").hidden=true;$("#detailSheet").hidden=false;$("#detail").scrollTop=0;
+}
+$("#detail").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const id=$("#detail").dataset.id;const it=items.find(i=>i.id===id);if(!it)return;
+  const a=b.dataset.act;
+  if(a==="renew"){await renew(id);openDetail(id)}
+  else if(a==="sell"){$("#sellbox").hidden=false;b.hidden=true;$("#sPrecio").focus()}
+  else if(a==="sellok"){
+    const p=toNum($("#sPrecio").value);if(p==null){toast("Pon el precio de venta");return}
+    await dbPut(Object.assign({},it,{vendida:true,precioVenta:p,fechaVenta:$("#sFecha").value||today()}));await load();
+    toast("¡Vendida! +"+eur(p-(it.coste||0)));openDetail(id);
+  }
+  else if(a==="unsell"){await dbPut(Object.assign({},it,{vendida:false,precioVenta:null,fechaVenta:null}));await load();openDetail(id)}
+  else if(a==="edit")openForm(it);
+  else if(a==="del"){$("#confirmDel").hidden=false;b.hidden=true}
+  else if(a==="delno"){$("#confirmDel").hidden=true;$("#btnDel").hidden=false}
+  else if(a==="delok"){await dbDel(id);await load();$("#detailSheet").hidden=true;toast("Prenda eliminada")}
+  else if(a==="cal")calendario(it);
+});
+async function renew(id){
+  const it=items.find(i=>i.id===id);if(!it)return;
+  await dbPut(Object.assign({},it,{ultimaRenovacion:today()}));await load();
+  toast("Renovado. Próxima: "+fmtDate(addDays(today(),ajustes.intervalo)));
+}
+document.addEventListener("click",e=>{
+  const r=e.target.closest("[data-renew]");if(r){e.stopPropagation();renew(r.dataset.renew);return}
+  const c=e.target.closest("[data-close]");if(c){c.closest(".sheet").hidden=true;return}
+  const s=e.target.closest(".sheet");if(s&&e.target===s){s.hidden=true;return}
+  const i=e.target.closest(".item[data-id]");if(i)openDetail(i.dataset.id);
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".sheet").forEach(s=>s.hidden=true);
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches(".item[data-id]")){e.preventDefault();openDetail(e.target.dataset.id)}});
+
+/* ---------- Calendario (.ics) ---------- */
+function calendario(it){
+  const start=proxima(it).replace(/-/g,"");
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Baldomera Closet//ES","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",
+    "UID:"+it.id+"@baldomera-closet","DTSTAMP:"+stamp,"DTSTART:"+start+"T100000","DURATION:PT15M",
+    "RRULE:FREQ=DAILY;INTERVAL="+ajustes.intervalo,
+    "SUMMARY:Renovar en Vinted: "+nombre(it),"DESCRIPTION:Renueva el anuncio en Vinted y márcalo en Baldomera Closet.",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Renovar en Vinted","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const file=new File([ics],"renovar-"+nombre(it).replace(/[\s·]+/g,"-").toLowerCase()+".ics",{type:"text/calendar"});
+  const url=URL.createObjectURL(file);
+  const a=document.createElement("a");a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  toast("Toca «Añadir todo» para guardarlo en el Calendario");
+}
+
+/* ---------- Filtros ---------- */
+document.querySelectorAll("[data-estado]").forEach(b=>b.addEventListener("click",()=>{filtro.estado=b.dataset.estado;document.querySelectorAll("[data-estado]").forEach(x=>x.setAttribute("aria-pressed",x===b));renderArmario()}));
+$("#fTipo").addEventListener("change",e=>{filtro.tipo=e.target.value;renderArmario()});
+$("#fColor").addEventListener("change",e=>{filtro.color=e.target.value;renderArmario()});
+$("#q").addEventListener("input",e=>{filtro.q=e.target.value.trim();renderArmario()});
+$("#mPrev").addEventListener("click",()=>{mesSel=shiftMes(mesSel,-1);renderCuentas()});
+$("#mNext").addEventListener("click",()=>{mesSel=shiftMes(mesSel,1);renderCuentas()});
+
+/* ---------- Ajustes ---------- */
+function paintAjustes(){$("#intVal").textContent=ajustes.intervalo;$("#calOn").checked=!!ajustes.calendario}
+$("#intMinus").addEventListener("click",()=>{ajustes.intervalo=Math.max(1,ajustes.intervalo-1);saveAjustes();paintAjustes();render()});
+$("#intPlus").addEventListener("click",()=>{ajustes.intervalo=Math.min(30,ajustes.intervalo+1);saveAjustes();paintAjustes();render()});
+$("#calOn").addEventListener("change",e=>{ajustes.calendario=e.target.checked;saveAjustes();toast(e.target.checked?"Avisos de Calendario activados":"Avisos de Calendario desactivados")});
+
+/* ---------- Copia de seguridad ---------- */
+const blobToData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)});
+const dataToBlob=async d=>(await fetch(d)).blob();
+$("#btnExport").addEventListener("click",async()=>{
+  const out=[];for(const it of items){out.push(Object.assign({},it,{foto:it.foto?await blobToData(it.foto):null}))}
+  const json=JSON.stringify({app:"baldomera-closet",version:1,fecha:new Date().toISOString(),ajustes,items:out});
+  const file=new File([json],"baldomera-copia-"+today()+".json",{type:"application/json"});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Copia de Baldomera Closet"});return}
+  }catch(e){if(e&&e.name==="AbortError")return}
+  const url=URL.createObjectURL(file);const a=document.createElement("a");a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  toast("Copia creada");
+});
+$("#btnImport").addEventListener("click",()=>$("#importFile").click());
+$("#importFile").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    if(data.app!=="baldomera-closet"||!Array.isArray(data.items))throw new Error("formato");
+    for(const it of data.items){if(it.foto)it.foto=await dataToBlob(it.foto);await dbPut(it)}
+    if(data.ajustes){Object.assign(ajustes,data.ajustes);saveAjustes();paintAjustes()}
+    await load();toast(data.items.length+" prendas recuperadas");show("armario");
+  }catch(err){toast("Ese archivo no es una copia de Baldomera Closet")}
+});
+
+/* ---------- Inicio ---------- */
+async function load(){items=await dbAll();render()}
+fillSelects();paintAjustes();
+const standalone=window.navigator.standalone||matchMedia("(display-mode: standalone)").matches;
+if(!standalone&&/iPhone|iPad|iPod/.test(navigator.userAgent))$("#installTip").hidden=false;
+load().catch(()=>toast("No se pudieron cargar los datos"));
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
