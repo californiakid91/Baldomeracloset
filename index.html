@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Baldomera Closet</title>
 <meta name="description" content="Control de prendas, renovaciones y beneficios de Vinted.">
-<meta name="theme-color" content="#F7D6E3">
+<meta name="theme-color" content="#F7D6E3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#4A2C3D" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,14 +16,16 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@500;600;700&display=swap">
+<!-- Las fuentes no bloquean el arranque: si no hay red, la app sale igual con la fuente del sistema -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: una sola columna tipo app, cabecera ciruela, barra de pestañas fija abajo, fichas de prenda como etiquetas */
 :root{
-  --bg:#FFF6F8; --surface:#FFFFFF; --ink:#4E3B52; --muted:#9C8AA0; --line:#F3DEE7;
+  /* Los colores de texto cumplen contraste AA sobre sus fondos (texto pequeño de 11-13 px incluido) */
+  --bg:#FFF6F8; --surface:#FFFFFF; --ink:#4E3B52; --muted:#7D6B83; --line:#F3DEE7;
   --plum:#F7D6E3; --plum-ink:#7A3F60; --lav:#EBDDF7; --lav-ink:#5E4280;
-  --accent:#DB6E9B; --accent-soft:#FCE6EE; --petal:#F9C6D8; --leaf:#A8D8C0; --sun:#FFD98A;
-  --good:#3F8F6E; --good-soft:#DDF3E8; --warn:#B66A2E; --warn-soft:#FFEBD9; --bad:#C2475F; --bad-soft:#FFE0E5;
+  --accent:#BE4F80; --accent-soft:#FCE6EE; --petal:#F9C6D8; --leaf:#A8D8C0; --sun:#FFD98A;
+  --good:#2A7154; --good-soft:#DDF3E8; --warn:#96531F; --warn-soft:#FFEBD9; --bad:#A8364E; --bad-soft:#FFE0E5;
   --display:"Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --script:"Dancing Script","Snell Roundhand","Brush Script MT",cursive;
   --body:"Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
@@ -37,6 +40,7 @@
   color-scheme:dark;
 }}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -48,7 +52,7 @@ header.top{position:sticky;top:0;z-index:20;background:var(--plum);color:var(--p
   padding:calc(env(safe-area-inset-top,0px) + 10px) max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));
   display:flex;align-items:center;gap:12px}
 header.top h1{font:700 32px/1 var(--script);margin:0;flex:1;position:relative;z-index:1}
-header.top h1 small{display:block;font:700 11px/1.4 var(--body);letter-spacing:1.4px;text-transform:uppercase;opacity:.75;margin-top:6px}
+header.top h1 small{display:block;font:700 11px/1.4 var(--body);letter-spacing:1.4px;text-transform:uppercase;opacity:.9;margin-top:6px}
 header.top{overflow:hidden;border-radius:0 0 26px 26px}
 .flores{position:absolute;right:58px;top:0;bottom:0;width:150px;pointer-events:none}
 .flor-p{fill:var(--petal)}.flor-c{fill:var(--sun)}.flor-l{fill:var(--leaf)}
@@ -79,12 +83,13 @@ h2{font:700 21px/1.2 var(--display);margin:6px 0 12px}
 .item .info{flex:1;min-width:0}
 .item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item .m{font-size:13px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.15);vertical-align:-1px;margin-right:4px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(127,127,127,.45);vertical-align:-1px;margin-right:4px}
 .pill{font:700 11px/1 var(--body);letter-spacing:.3px;padding:6px 8px;border-radius:999px;white-space:nowrap}
 .pill.due{background:var(--bad-soft);color:var(--bad)}
 .pill.soon{background:var(--warn-soft);color:var(--warn)}
 .pill.ok{background:var(--good-soft);color:var(--good)}
 .pill.sold{background:var(--lav);color:var(--lav-ink)}
+.item .m .late{color:var(--bad);font-weight:700}
 .renew{flex:none;border:0;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px;padding:10px 12px;border-radius:12px}
 .renew:active{opacity:.85}
 
@@ -95,19 +100,20 @@ h2{font:700 21px/1.2 var(--display);margin:6px 0 12px}
 /* Filtros */
 .filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px 10px;padding-left:16px;padding-right:16px;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:14px;font-weight:600;white-space:nowrap;flex:none}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;min-height:40px;font-size:14px;font-weight:600;white-space:nowrap;flex:none}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:16px}
+.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:16px;-webkit-appearance:none;appearance:none}
 .selects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-select.f{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;font-size:15px}
+select.f{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;min-height:46px;font-size:16px}
 
 /* Cuentas */
 .monthnav{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:6px}
 .monthnav b{font:700 19px var(--display)}
 .monthnav .iconbtn{color:var(--ink)}
+.monthnav .iconbtn:disabled{opacity:.3}
 .big{background:var(--lav);color:var(--lav-ink);position:relative;overflow:hidden;border-radius:var(--r);padding:18px;margin:10px 0}
 .big .flor-big{position:absolute;right:-18px;bottom:-22px;width:120px;height:120px;opacity:.9}
-.big span{position:relative;font-size:13px;opacity:.75}
+.big span{position:relative;font-size:13px;opacity:.9}
 .big b{position:relative;display:block;font:700 40px/1.1 var(--display);margin:4px 0 2px}
 .rows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 .row{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid var(--line)}
@@ -131,13 +137,14 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .tab svg{width:24px;height:24px}
 .tab[aria-current="page"]{color:var(--accent)}
 .tab .badge{position:absolute;top:0;left:calc(50% + 6px);background:var(--accent);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
-.fab{justify-self:center;width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 6px 18px rgba(219,110,155,.35);margin-top:-22px}
+.fab{justify-self:center;width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;box-shadow:0 6px 18px rgba(190,79,128,.35);margin-top:-22px}
 .fab svg{width:28px;height:28px}
 
 /* Hoja (formulario / detalle) */
 .sheet{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(20,10,24,.45)}
 .sheet[hidden]{display:none}
-.panel{background:var(--bg);border-radius:20px 20px 0 0;max-height:94%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+body:has(.sheet:not([hidden])){overflow:hidden}
+.panel{background:var(--bg);border-radius:20px 20px 0 0;max-height:94%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:0 max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));width:100%;max-width:720px;margin:0 auto}
 .panel-head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:8px;padding:14px 0 10px;z-index:2}
 .panel-head h3{flex:1;margin:0;font:700 21px var(--display)}
@@ -145,7 +152,8 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;min-width:0}
 .field label,.lbl{font-size:13px;font-weight:700;color:var(--muted)}
 .field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:16px;min-width:0}
-.field input[type=date]{min-height:48px;-webkit-appearance:none;appearance:none}
+.field input[type=date]{min-height:48px;-webkit-appearance:none;appearance:none;text-align:left}
+.field input[type=date]::-webkit-date-and-time-value{text-align:left;min-height:1.4em}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .euro{position:relative}
 .euro input{padding-right:34px}
@@ -160,7 +168,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .btn.block{width:100%;padding:15px}
 .btn:active{opacity:.85}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chips .chip{padding:8px 12px}
+.chips .chip{padding:8px 12px;min-height:40px}
 .actions{display:grid;gap:10px;margin-top:6px}
 .detail-photo{width:100%;max-height:340px;object-fit:cover;border-radius:16px;margin-bottom:12px;background:var(--accent-soft)}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 16px}
@@ -182,7 +190,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .switch input:checked+span{background:var(--good)}
 .switch input:checked+span::after{transform:translateX(20px)}
 .stepper{display:flex;align-items:center;gap:6px}
-.stepper button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:20px;font-weight:700}
+.stepper button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:20px;font-weight:700}
 .stepper b{min-width:28px;text-align:center;font-size:18px}
 .note{font-size:13px;color:var(--muted);margin:6px 2px 14px}
 
@@ -194,7 +202,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .allgood svg.fl{width:34px;height:34px;margin:0;flex:none}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px}
 .seg button{border:0;background:transparent;border-radius:10px;padding:10px 0;font-weight:700;font-size:14px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--plum-ink)}
 .rank{display:flex;flex-direction:column;gap:8px}
 .rk{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .rk-top{display:flex;align-items:baseline;gap:10px}
@@ -319,7 +327,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 </nav>
 
 <!-- Formulario -->
-<div class="sheet" id="formSheet" hidden>
+<div class="sheet" id="formSheet" role="dialog" aria-modal="true" aria-labelledby="formTitle" hidden>
   <form class="panel" id="form" novalidate>
     <div class="panel-head">
       <h3 id="formTitle">Nueva prenda</h3>
@@ -347,18 +355,22 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
       <div class="field"><label for="iCompra">Comprada el</label><input id="iCompra" type="date"></div>
       <div class="field"><label for="iPub">Publicada el</label><input id="iPub" type="date"></div>
     </div>
-    <div class="field"><label for="iRen">Última renovación</label><input id="iRen" type="date"></div>
+    <div class="field" id="renField"><label for="iRen">Última renovación</label><input id="iRen" type="date"></div>
+    <div class="two" id="ventaFields" hidden>
+      <div class="field"><label for="iVenta">Vendida por</label><div class="euro"><input id="iVenta" inputmode="decimal" placeholder="8"></div></div>
+      <div class="field"><label for="iFVenta">Fecha de venta</label><input id="iFVenta" type="date"></div>
+    </div>
     <div class="field"><label for="iNotas">Notas (opcional)</label><textarea id="iNotas" rows="2" placeholder="Mercadillo de los domingos, talla M…"></textarea></div>
     <button class="btn primary block" type="submit" id="btnGuardar">Guardar prenda</button>
   </form>
 </div>
 
 <!-- Detalle -->
-<div class="sheet" id="detailSheet" hidden>
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden>
   <div class="panel" id="detail"></div>
 </div>
 
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
 "use strict";
@@ -372,12 +384,17 @@ const HANGER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const today=()=>ymd(new Date());
-const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+// Las fechas se guardan como "AAAA-MM-DD" y se interpretan siempre en hora local (sin saltos por zona horaria)
+const isYmd=s=>typeof s==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(parse(s));
+const parse=s=>{const [y,m,d]=String(s||"").split("-").map(Number);return new Date(y,m-1,d)};
 const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/86400000);
 const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
-const fmtDate=s=>s?parse(s).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"}):"—";
-const eur=n=>(Math.round((n||0)*100)/100).toLocaleString("es-ES",{minimumFractionDigits:(n%1?2:0),maximumFractionDigits:2})+" €";
-const toNum=v=>{if(v==null)return null;v=String(v).trim().replace(",",".");if(v==="")return null;const n=Number(v);return isFinite(n)?n:null};
+const fmtDate=s=>isYmd(s)?parse(s).toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"}):"—";
+// Dinero: se redondea a céntimos antes de decidir si se muestran decimales (evita "3,00 €" por errores de coma flotante)
+const eur=n=>{const r=Math.round((Number(n)||0)*100)/100;return r.toLocaleString("es-ES",{minimumFractionDigits:r%1?2:0,maximumFractionDigits:2})+" €"};
+// Acepta "1,5", "1.5", "1 234,50" y "1.234,50"; devuelve null si está vacío o no es un número
+const toNum=v=>{if(v==null)return null;v=String(v).trim().replace(/\s|€/g,"");if(v==="")return null;if(v.includes(",")){v=v.replace(/\./g,"").replace(",",".")}const n=Number(v);return isFinite(n)?Math.round(n*100)/100:null};
+const txtDias=n=>n+(n===1?" día":" días");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 /* ---------- Almacenamiento (IndexedDB) ---------- */
@@ -412,23 +429,24 @@ function fotoUrl(it){
   if(c)URL.revokeObjectURL(c.url);
   const url=URL.createObjectURL(it.foto);urls.set(it.id,{blob:it.foto,url});return url;
 }
+function limpiarUrls(){const vivos=new Set(items.map(i=>i.id));for(const [id,c] of urls){if(!vivos.has(id)){URL.revokeObjectURL(c.url);urls.delete(id)}}}
 
 /* ---------- Lógica ---------- */
 const nombre=it=>(it.tipo||"Prenda")+(it.marca?" "+it.marca:"")+(it.color?" · "+it.color:"");
 const MARCAS=["Adidas","Nike","Puma","Zara","Mango","Bershka","Pull&Bear","Stradivarius","Massimo Dutti","H&M","Primark","Shein","Levi's","Tommy Hilfiger","Ralph Lauren","Lacoste","Desigual","Springfield","Cortefiel","El Corte Inglés","Sfera","Lefties","Oysho","Vans","Converse","The North Face","Calvin Klein","Guess","Benetton","Sin marca"];
 const marcaKey=m=>(m||"").trim().toLowerCase();
 function fillMarcas(){const seen=new Map();items.forEach(i=>{if(i.marca)seen.set(marcaKey(i.marca),i.marca)});MARCAS.forEach(m=>{if(!seen.has(marcaKey(m)))seen.set(marcaKey(m),m)});$("#marcasList").innerHTML=[...seen.values()].map(m=>`<option value="${esc(m)}">`).join("")}
-const ultimaRen=it=>it.ultimaRenovacion||it.fechaPublicacion||it.creado;
+const ultimaRen=it=>[it.ultimaRenovacion,it.fechaPublicacion,it.creado].find(isYmd)||today();
 const proxima=it=>addDays(ultimaRen(it),ajustes.intervalo);
 function estadoRen(it){
   if(it.vendida)return{cls:"sold",txt:"Vendida",dias:null};
   const d=daysBetween(today(),proxima(it));
-  if(d<0)return{cls:"due",txt:"Atrasada "+(-d)+(d===-1?" día":" días"),dias:d};
+  if(d<0)return{cls:"due",txt:"Atrasada "+txtDias(-d),dias:d};
   if(d===0)return{cls:"due",txt:"Toca hoy",dias:0};
   if(d===1)return{cls:"soon",txt:"Mañana",dias:1};
   return{cls:"ok",txt:"En "+d+" días",dias:d};
 }
-const diasPublicada=it=>it.fechaPublicacion?daysBetween(it.fechaPublicacion,it.vendida&&it.fechaVenta?it.fechaVenta:today()):null;
+const diasPublicada=it=>isYmd(it.fechaPublicacion)?Math.max(0,daysBetween(it.fechaPublicacion,it.vendida&&isYmd(it.fechaVenta)?it.fechaVenta:today())):null;
 
 /* ---------- Render ---------- */
 const $=s=>document.querySelector(s);
@@ -438,8 +456,9 @@ function itemHTML(it,withRenew){
   const meta=[];
   if(it.vendida){meta.push("Vendida por <b class=num>"+eur(it.precioVenta)+"</b>");meta.push("+"+eur((it.precioVenta||0)-(it.coste||0)))}
   else{if(it.precioAnuncio!=null)meta.push("<span class=num>"+eur(it.precioAnuncio)+"</span>");meta.push("costó <span class=num>"+eur(it.coste)+"</span>")}
-  if(dp!=null)meta.push((it.vendida?"tardó ":"")+dp+(dp===1?" día":" días"));
-  return `<div class="item" data-id="${it.id}" role="button" tabindex="0">${thumbHTML(it)}
+  if(dp!=null)meta.push((it.vendida?"tardó ":"")+txtDias(dp));
+  if(withRenew&&e.dias<0)meta.push(`<span class="late">${e.txt}</span>`);
+  return `<div class="item" data-id="${esc(it.id)}" role="button" tabindex="0">${thumbHTML(it)}
     <div class="info"><div class="t"><span class="dot" style="background:${colorCss(it.color)}"></span>${esc(nombre(it))}</div><div class="m">${meta.map(x=>"<span>"+x+"</span>").join("")}</div></div>
     ${withRenew&&!it.vendida&&e.dias!=null&&e.dias<=0?`<button class="renew" data-renew="${it.id}">Renovado</button>`:`<span class="pill ${e.cls}">${e.txt}</span>`}</div>`;
 }
@@ -472,7 +491,8 @@ function renderArmario(){
   if(filtro.tipo)l=l.filter(i=>i.tipo===filtro.tipo);
   if(filtro.color)l=l.filter(i=>i.color===filtro.color);
   if(filtro.q){const q=filtro.q.toLowerCase();l=l.filter(i=>(nombre(i)+" "+(i.notas||"")).toLowerCase().includes(q))}
-  l.sort((a,b)=>(b.vendida?b.fechaVenta:b.fechaPublicacion||b.creado).localeCompare(a.vendida?a.fechaVenta:a.fechaPublicacion||a.creado));
+  const fecha=i=>(i.vendida?i.fechaVenta:i.fechaPublicacion)||i.creado||"";
+  l.sort((a,b)=>fecha(b).localeCompare(fecha(a)));
   $("#allList").innerHTML=l.length?l.map(i=>itemHTML(i,false)).join(""):`<div class="empty">${items.length?"Ninguna prenda con estos filtros.":'<svg class="fl" aria-hidden="true"><use href="#flor"/></svg>'+"<strong>Tu armario está vacío</strong>Añade tu primera prenda con el botón +."}</div>`;
 }
 let mesSel=today().slice(0,7);
@@ -487,7 +507,7 @@ const mesLabel=(m,opt)=>{const t=parse(m+"-01").toLocaleDateString("es-ES",opt||
 const shiftMes=(m,n)=>{const d=parse(m+"-01");d.setMonth(d.getMonth()+n);return ymd(d).slice(0,7)};
 function renderCuentas(){
   const s=statsMes(mesSel);
-  $("#mLabel").textContent=mesLabel(mesSel);
+  $("#mLabel").textContent=mesLabel(mesSel);$("#mNext").disabled=mesSel>=today().slice(0,7);
   $("#cBenef").textContent=(s.benef>0?"+":"")+eur(s.benef);
   $("#cBenefSub").textContent=s.n?`${s.n} ${s.n===1?"prenda vendida":"prendas vendidas"}`:"Sin ventas este mes";
   $("#cRows").innerHTML=[
@@ -580,9 +600,11 @@ let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clea
 let edit=null,fotoBlob=null,tipoSel="",colorSel="";
 function chipsHTML(list,sel,attr){return list.map(x=>{const n=Array.isArray(x)?x[0]:x;const dot=Array.isArray(x)?`<span class="dot" style="background:${x[1]}"></span>`:"";return `<button type="button" class="chip" ${attr}="${n}" aria-pressed="${n===sel}">${dot}${n}</button>`}).join("")}
 function paintChips(){$("#tipoChips").innerHTML=chipsHTML(TIPOS,tipoSel,"data-tipo");$("#colorChips").innerHTML=chipsHTML(COLORES,colorSel,"data-color")}
+let prevUrl=null;
 function paintFoto(){
   const p=$("#fotoPrev");
-  if(fotoBlob){const u=URL.createObjectURL(fotoBlob);p.innerHTML=`<img src="${u}" alt="">`;$("#btnFotoQuitar").hidden=false}
+  if(prevUrl){URL.revokeObjectURL(prevUrl);prevUrl=null}
+  if(fotoBlob){prevUrl=URL.createObjectURL(fotoBlob);p.innerHTML=`<img src="${prevUrl}" alt="">`;$("#btnFotoQuitar").hidden=false}
   else{p.innerHTML=HANGER;$("#btnFotoQuitar").hidden=true}
 }
 function openForm(it){
@@ -594,6 +616,11 @@ function openForm(it){
   $("#iPub").value=it?it.fechaPublicacion||"":today();
   $("#iRen").value=it?it.ultimaRenovacion||"":today();
   $("#iNotas").value=it?it.notas||"":"";$("#iMarca").value=it?it.marca||"":"";fillMarcas();
+  // Si la prenda ya está vendida, se puede corregir el precio y la fecha de venta; la renovación ya no aplica
+  const vendida=!!(it&&it.vendida);
+  $("#ventaFields").hidden=!vendida;$("#renField").hidden=vendida;
+  $("#iVenta").value=vendida&&it.precioVenta!=null?String(it.precioVenta).replace(".",","):"";
+  $("#iFVenta").value=vendida?it.fechaVenta||today():"";
   paintChips();paintFoto();
   $("#detailSheet").hidden=true;$("#formSheet").hidden=false;$("#formSheet .panel").scrollTop=0;
 }
@@ -621,13 +648,25 @@ $("#form").addEventListener("submit",async e=>{
   e.preventDefault();
   if(!tipoSel){toast("Elige el tipo de prenda");return}
   const coste=toNum($("#iCoste").value);
-  if(coste==null){toast("Pon lo que te costó (aunque sea 1 €)");$("#iCoste").focus();return}
+  if(coste==null||coste<0){toast("Pon lo que te costó (aunque sea 1 €)");$("#iCoste").focus();return}
+  const precioAnuncio=toNum($("#iPrecio").value);
+  if(precioAnuncio!=null&&precioAnuncio<0){toast("El precio del anuncio no puede ser negativo");$("#iPrecio").focus();return}
+  const fCompra=$("#iCompra").value||null,fPub=$("#iPub").value||today();
+  if(fCompra&&fCompra>fPub){toast("La fecha de compra no puede ser posterior a la de publicación");$("#iCompra").focus();return}
   const nuevo=!edit;
+  const venta={};
+  if(edit&&edit.vendida){
+    const pv=toNum($("#iVenta").value);
+    if(pv==null||pv<0){toast("Pon por cuánto la vendiste");$("#iVenta").focus();return}
+    const fv=$("#iFVenta").value||edit.fechaVenta||today();
+    if(fv<fPub){toast("La fecha de venta no puede ser anterior a la de publicación");$("#iFVenta").focus();return}
+    venta.precioVenta=pv;venta.fechaVenta=fv;
+  }
   const it=Object.assign({},edit||{id:(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),creado:today(),vendida:false},{
-    tipo:tipoSel,color:colorSel,marca:normMarca($("#iMarca").value),coste,precioAnuncio:toNum($("#iPrecio").value),
-    fechaCompra:$("#iCompra").value||null,fechaPublicacion:$("#iPub").value||today(),
-    ultimaRenovacion:$("#iRen").value||$("#iPub").value||today(),notas:$("#iNotas").value.trim(),foto:fotoBlob
-  });
+    tipo:tipoSel,color:colorSel,marca:normMarca($("#iMarca").value),coste,precioAnuncio,
+    fechaCompra:fCompra,fechaPublicacion:fPub,
+    ultimaRenovacion:(edit&&edit.vendida?edit.ultimaRenovacion:$("#iRen").value)||fPub,notas:$("#iNotas").value.trim(),foto:fotoBlob
+  },venta);
   await dbPut(it);await load();
   $("#formSheet").hidden=true;
   toast(nuevo?"Prenda guardada":"Cambios guardados");
@@ -642,12 +681,12 @@ function openDetail(id,opt){
     ["Me costó",eur(it.coste)],
     it.vendida?["Vendida por",eur(it.precioVenta)]:["Precio del anuncio",it.precioAnuncio!=null?eur(it.precioAnuncio):"—"],
     it.vendida?["Beneficio",eur((it.precioVenta||0)-(it.coste||0))]:["Próxima renovación",fmtDate(proxima(it))],
-    [it.vendida?"Tardó en venderse":"Lleva publicada",dp!=null?dp+(dp===1?" día":" días"):"—"],
+    [it.vendida?"Tardó en venderse":"Lleva publicada",dp!=null?txtDias(dp):"—"],
     ["Marca",it.marca?esc(it.marca):"—"],["Comprada",fmtDate(it.fechaCompra)],
     it.vendida?["Fecha de venta",fmtDate(it.fechaVenta)]:["Última renovación",fmtDate(ultimaRen(it))]
   ];
   $("#detail").innerHTML=`
-    <div class="panel-head"><h3><span class="dot" style="background:${colorCss(it.color)}"></span>${esc(nombre(it))}</h3>
+    <div class="panel-head"><h3 id="detailTitle"><span class="dot" style="background:${colorCss(it.color)}"></span>${esc(nombre(it))}</h3>
       <button class="iconbtn" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     ${u?`<img class="detail-photo" src="${u}" alt="">`:""}
     <span class="pill ${e.cls}">${e.txt}</span>
@@ -678,8 +717,10 @@ $("#detail").addEventListener("click",async e=>{
   if(a==="renew"){await renew(id);openDetail(id)}
   else if(a==="sell"){$("#sellbox").hidden=false;b.hidden=true;$("#sPrecio").focus()}
   else if(a==="sellok"){
-    const p=toNum($("#sPrecio").value);if(p==null){toast("Pon el precio de venta");return}
-    await dbPut(Object.assign({},it,{vendida:true,precioVenta:p,fechaVenta:$("#sFecha").value||today()}));await load();
+    const p=toNum($("#sPrecio").value);if(p==null||p<0){toast("Pon el precio de venta");$("#sPrecio").focus();return}
+    const fv=$("#sFecha").value||today();
+    if(isYmd(it.fechaPublicacion)&&fv<it.fechaPublicacion){toast("La fecha de venta no puede ser anterior a la de publicación");return}
+    await dbPut(Object.assign({},it,{vendida:true,precioVenta:p,fechaVenta:fv}));await load();
     toast("¡Vendida! +"+eur(p-(it.coste||0)));openDetail(id);
   }
   else if(a==="unsell"){await dbPut(Object.assign({},it,{vendida:false,precioVenta:null,fechaVenta:null}));await load();openDetail(id)}
@@ -704,14 +745,16 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelect
   if((e.key==="Enter"||e.key===" ")&&e.target.matches(".item[data-id]")){e.preventDefault();openDetail(e.target.dataset.id)}});
 
 /* ---------- Calendario (.ics) ---------- */
+const icsText=s=>String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n");
+const icsFold=l=>{const out=[];let enc=new TextEncoder().encode(l);while(enc.length>73){let n=73;while(n>0&&(enc[n]&0xC0)===0x80)n--;out.push(enc.slice(0,n));enc=enc.slice(n)}out.push(enc);const td=new TextDecoder();return out.map((x,i)=>(i?" ":"")+td.decode(x)).join("\r\n")};
 function calendario(it){
   const start=proxima(it).replace(/-/g,"");
   const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
   const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Baldomera Closet//ES","CALSCALE:GREGORIAN","METHOD:PUBLISH","BEGIN:VEVENT",
     "UID:"+it.id+"@baldomera-closet","DTSTAMP:"+stamp,"DTSTART:"+start+"T100000","DURATION:PT15M",
     "RRULE:FREQ=DAILY;INTERVAL="+ajustes.intervalo,
-    "SUMMARY:Renovar en Vinted: "+nombre(it),"DESCRIPTION:Renueva el anuncio en Vinted y márcalo en Baldomera Closet.",
-    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Renovar en Vinted","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+    "SUMMARY:Renovar en Vinted: "+icsText(nombre(it)),"DESCRIPTION:Renueva el anuncio en Vinted y márcalo en Baldomera Closet.",
+    "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Renovar en Vinted","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].map(icsFold).join("\r\n");
   const file=new File([ics],"renovar-"+nombre(it).replace(/[\s·]+/g,"-").toLowerCase()+".ics",{type:"text/calendar"});
   const url=URL.createObjectURL(file);
   const a=document.createElement("a");a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
@@ -725,7 +768,7 @@ $("#fTipo").addEventListener("change",e=>{filtro.tipo=e.target.value;renderArmar
 $("#fColor").addEventListener("change",e=>{filtro.color=e.target.value;renderArmario()});
 $("#q").addEventListener("input",e=>{filtro.q=e.target.value.trim();renderArmario()});
 $("#mPrev").addEventListener("click",()=>{mesSel=shiftMes(mesSel,-1);renderCuentas()});
-$("#mNext").addEventListener("click",()=>{mesSel=shiftMes(mesSel,1);renderCuentas()});
+$("#mNext").addEventListener("click",()=>{if(mesSel<today().slice(0,7)){mesSel=shiftMes(mesSel,1);renderCuentas()}});
 
 /* ---------- Ajustes ---------- */
 function paintAjustes(){$("#intVal").textContent=ajustes.intervalo;$("#calOn").checked=!!ajustes.calendario}
@@ -734,39 +777,84 @@ $("#intPlus").addEventListener("click",()=>{ajustes.intervalo=Math.min(30,ajuste
 $("#calOn").addEventListener("change",e=>{ajustes.calendario=e.target.checked;saveAjustes();toast(e.target.checked?"Avisos de Calendario activados":"Avisos de Calendario desactivados")});
 
 /* ---------- Copia de seguridad ---------- */
-const blobToData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)});
-const dataToBlob=async d=>(await fetch(d)).blob();
+const blobToData=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(b)});
+const dataToBlob=async d=>{if(typeof d!=="string"||!d.startsWith("data:image/"))throw new Error("foto");return (await fetch(d)).blob()};
+function descargar(file){
+  // En iOS, un blob con tipo "application/octet-stream" se descarga en vez de abrirse en la propia app
+  const url=URL.createObjectURL(new Blob([file],{type:"application/octet-stream"}));
+  const a=document.createElement("a");a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
 $("#btnExport").addEventListener("click",async()=>{
-  const out=[];for(const it of items){out.push(Object.assign({},it,{foto:it.foto?await blobToData(it.foto):null}))}
-  const json=JSON.stringify({app:"baldomera-closet",version:1,fecha:new Date().toISOString(),ajustes,items:out});
-  const file=new File([json],"baldomera-copia-"+today()+".json",{type:"application/json"});
+  const b=$("#btnExport");if(b.disabled)return;b.disabled=true;
   try{
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Copia de Baldomera Closet"});return}
-  }catch(e){if(e&&e.name==="AbortError")return}
-  const url=URL.createObjectURL(file);const a=document.createElement("a");a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  toast("Copia creada");
+    const out=[];for(const it of items){out.push(Object.assign({},it,{foto:it.foto?await blobToData(it.foto):null}))}
+    const json=JSON.stringify({app:"baldomera-closet",version:1,fecha:new Date().toISOString(),ajustes,items:out});
+    const file=new File([json],"baldomera-copia-"+today()+".json",{type:"application/json"});
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Copia de Baldomera Closet"});toast("Copia guardada");return}
+    }catch(e){if(e&&e.name==="AbortError")return}
+    descargar(file);toast("Copia creada");
+  }catch(e){toast("No se pudo crear la copia")}
+  finally{b.disabled=false}
 });
+// Deja cada prenda de la copia con la forma que espera la app, por si el archivo viene de otra versión o está tocado
+function limpiarItem(raw){
+  if(!raw||typeof raw!=="object")return null;
+  const str=v=>typeof v==="string"?v.trim():"";
+  const num=v=>{const n=toNum(v);return n!=null&&n>=0?n:null};
+  const fecha=v=>isYmd(v)?v:null;
+  const it={
+    id:str(raw.id)||(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)),
+    creado:fecha(raw.creado)||today(),vendida:raw.vendida===true,
+    tipo:TIPOS.includes(raw.tipo)?raw.tipo:(str(raw.tipo)?"Otro":""),
+    color:COLORES.some(c=>c[0]===raw.color)?raw.color:"",
+    marca:str(raw.marca).slice(0,60),coste:num(raw.coste)||0,precioAnuncio:num(raw.precioAnuncio),
+    fechaCompra:fecha(raw.fechaCompra),fechaPublicacion:fecha(raw.fechaPublicacion)||fecha(raw.creado)||today(),
+    ultimaRenovacion:fecha(raw.ultimaRenovacion),notas:str(raw.notas).slice(0,500),foto:null,
+    precioVenta:null,fechaVenta:null
+  };
+  if(!it.tipo)it.tipo="Otro";
+  if(!it.ultimaRenovacion)it.ultimaRenovacion=it.fechaPublicacion;
+  if(it.vendida){it.precioVenta=num(raw.precioVenta)||0;it.fechaVenta=fecha(raw.fechaVenta)||it.fechaPublicacion}
+  return it;
+}
 $("#btnImport").addEventListener("click",()=>$("#importFile").click());
 $("#importFile").addEventListener("change",async e=>{
   const f=e.target.files[0];e.target.value="";if(!f)return;
+  let data;
+  try{data=JSON.parse(await f.text())}catch(err){data=null}
+  if(!data||data.app!=="baldomera-closet"||!Array.isArray(data.items)){toast("Ese archivo no es una copia de Baldomera Closet");return}
+  if(items.length&&!confirm(`Tienes ${items.length} prendas guardadas. Las de la copia se añadirán a las que ya tienes (si alguna coincide, se sustituye). ¿Seguir?`))return;
+  let n=0,sinFoto=0;
   try{
-    const data=JSON.parse(await f.text());
-    if(data.app!=="baldomera-closet"||!Array.isArray(data.items))throw new Error("formato");
-    for(const it of data.items){if(it.foto)it.foto=await dataToBlob(it.foto);await dbPut(it)}
-    if(data.ajustes){Object.assign(ajustes,data.ajustes);saveAjustes();paintAjustes()}
-    await load();toast(data.items.length+" prendas recuperadas");show("armario");
-  }catch(err){toast("Ese archivo no es una copia de Baldomera Closet")}
+    for(const raw of data.items){
+      const it=limpiarItem(raw);if(!it)continue;
+      if(raw.foto){try{it.foto=await dataToBlob(raw.foto)}catch(err){sinFoto++}}
+      await dbPut(it);n++;
+    }
+    if(data.ajustes&&typeof data.ajustes==="object"){
+      const iv=Number(data.ajustes.intervalo);
+      if(Number.isInteger(iv)&&iv>=1&&iv<=30)ajustes.intervalo=iv;
+      ajustes.calendario=data.ajustes.calendario===true;
+      saveAjustes();paintAjustes();
+    }
+  }catch(err){toast("No se pudo leer la copia entera");}
+  await load();
+  toast(n===1?"1 prenda recuperada":n+" prendas recuperadas"+(sinFoto?" ("+sinFoto+" sin foto)":""));
+  if(n)show("armario");
 });
 
 /* ---------- Inicio ---------- */
-async function load(){items=await dbAll();render()}
+async function load(){items=await dbAll();limpiarUrls();render()}
 fillSelects();paintAjustes();
 const standalone=window.navigator.standalone||matchMedia("(display-mode: standalone)").matches;
 if(!standalone&&/iPhone|iPad|iPod/.test(navigator.userAgent))$("#installTip").hidden=false;
 load().catch(()=>toast("No se pudieron cargar los datos"));
+// Al volver a la app se recalculan los días (puede haber cambiado la fecha)
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
 /* ---------- Actualizaciones automáticas ---------- */
-const APP_VERSION="4";
+const APP_VERSION="1";
 $("#appVersion").textContent="Baldomera Closet · Versión "+APP_VERSION;
 try{const prev=localStorage.getItem("baldomera-version");if(prev&&prev!==APP_VERSION)setTimeout(()=>toast("App actualizada a la versión "+APP_VERSION),600);localStorage.setItem("baldomera-version",APP_VERSION)}catch(e){}
 function quieta(){return $("#formSheet").hidden&&$("#detailSheet").hidden}
