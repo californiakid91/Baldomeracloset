@@ -18,4 +18,6 @@ App para llevar el control de las prendas que se venden en Vinted: lo que costó
 - **Copias** (en Ajustes, la rueda de arriba): todo se guarda solo en el iPhone. Conviene guardar una copia de seguridad de vez en cuando en Archivos o iCloud Drive.
 
 ## Para actualizar la app
-Edita `index.html` y sube el número de `VERSION` en `sw.js` para que el iPhone descargue la versión nueva.
+Edita `index.html`, sube `APP_VERSION` en `index.html` y `VERSION` en `sw.js` (por ejemplo de 4 a 5) y súbelo. El iPhone recibirá la versión nueva sola.
+
+La app se actualiza sola: cada vez que se abre (o vuelve a primer plano) comprueba si hay una versión nueva y se recarga con ella. No hace falta volver a añadirla a la pantalla de inicio.

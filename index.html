@@ -212,6 +212,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
 .tips{background:var(--lav);color:var(--lav-ink);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;font-size:14px}
 .tips p{margin:4px 0}
 .tips b{font-weight:700}
+.version{text-align:center;font-size:12px;font-weight:600;color:var(--muted);margin:28px 0 0;opacity:.8}
 </style>
 </head>
 <body>
@@ -302,6 +303,7 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surf
       <input type="file" id="importFile" accept=".json,application/json" hidden>
     </div>
   </section>
+  <p class="version" id="appVersion"></p>
 </main>
 
 <nav class="tabs" aria-label="Secciones">
@@ -763,7 +765,23 @@ const standalone=window.navigator.standalone||matchMedia("(display-mode: standal
 if(!standalone&&/iPhone|iPad|iPod/.test(navigator.userAgent))$("#installTip").hidden=false;
 load().catch(()=>toast("No se pudieron cargar los datos"));
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* ---------- Actualizaciones automáticas ---------- */
+const APP_VERSION="4";
+$("#appVersion").textContent="Baldomera Closet · Versión "+APP_VERSION;
+try{const prev=localStorage.getItem("baldomera-version");if(prev&&prev!==APP_VERSION)setTimeout(()=>toast("App actualizada a la versión "+APP_VERSION),600);localStorage.setItem("baldomera-version",APP_VERSION)}catch(e){}
+function quieta(){return $("#formSheet").hidden&&$("#detailSheet").hidden}
+if("serviceWorker" in navigator){
+  const habiaControl=!!navigator.serviceWorker.controller;let recargando=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(!habiaControl||recargando)return;recargando=true;
+    const recargar=()=>{if(quieta())location.reload();else setTimeout(recargar,3000)};recargar();
+  });
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+    const buscar=()=>reg.update().catch(()=>{});
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)buscar()});
+    setInterval(buscar,30*60*1000);
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>

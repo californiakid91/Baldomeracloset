@@ -1,9 +1,14 @@
-// Guarda la app para que funcione sin conexión. Sube VERSION al publicar cambios.
-const VERSION = "baldomera-v3";
+// Baldomera Closet: funciona sin conexión y se actualiza sola.
+// Al publicar cambios, sube VERSION (y APP_VERSION en index.html).
+const VERSION = "baldomera-v4";
 const SHELL = ["./", "index.html", "manifest.json", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(VERSION)
+      .then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", e => {
@@ -16,10 +21,13 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
-  // Red primero (para recibir actualizaciones), caché si no hay conexión
+  const url = new URL(req.url);
+  const propio = url.origin === location.origin;
+  // Red primero, saltándose la caché del navegador, para recibir siempre la última versión.
+  // Sin conexión, se usa la copia guardada.
   e.respondWith(
-    fetch(req).then(res => {
-      if (res.ok && (new URL(req.url).origin === location.origin || req.url.startsWith("https://fonts."))) {
+    fetch(propio ? new Request(req, { cache: "no-cache" }) : req).then(res => {
+      if (res.ok && (propio || url.hostname.startsWith("fonts."))) {
         const copy = res.clone();
         caches.open(VERSION).then(c => c.put(req, copy));
       }
